@@ -8,6 +8,8 @@ function TuringMachine(tapeBlockId, alphabetId, statesBlockId) {
     this.alphabetBox.onkeyup = function() {machine.InitStates() }
 
     this.tape = new Tape()
+    this.states = {}
+
     this.InitTape()
     this.InitStates()
     this.position = Math.floor(this.tape.size / 2)
@@ -39,7 +41,7 @@ TuringMachine.prototype.MakeStateCell = function(row, text = "") {
     return cell
 }
 
-TuringMachine.prototype.MakeInput = function(index) {
+TuringMachine.prototype.MakeTapeInput = function(index) {
     let machine = this
     let input = document.createElement("input")
     input.type = "text"
@@ -54,6 +56,19 @@ TuringMachine.prototype.MakeInput = function(index) {
     input.onkeydown = function(e) { machine.TapeKeyDown(index, e) }
 
     let cell = this.MakeTapeCell()
+    cell.appendChild(input)
+}
+
+TuringMachine.prototype.MakeStatesInput = function(cell, state, char) {
+    let machine = this
+    let input = document.createElement("input")
+    input.type = "text"
+    input.className = "states-cell-input"
+    input.id = 'states-cell-' + state + '-' + char
+    input.value = ""
+    input.placeholder = 'N'
+    input.onchange = function() { machine.ValidateStateCell(input, state, char) }
+
     cell.appendChild(input)
 }
 
@@ -72,7 +87,7 @@ TuringMachine.prototype.InitTape = function() {
     this.InitMoveTapeButton(this.MakeTapeCell(), '‹', -1)
     
     for (let i = 0; i < tapeSize; i++)
-        this.MakeInput(i)
+        this.MakeTapeInput(i)
 
     this.InitMoveTapeButton(this.MakeTapeCell(), '›', 1)
 }
@@ -86,11 +101,11 @@ TuringMachine.prototype.GetAlphabet = function() {
 }
 
 TuringMachine.prototype.InitStates = function() {
-
     while (this.statesBlock.firstChild) {
         this.statesBlock.firstChild.remove()
     }
 
+    let machine = this
     let header = this.MakeStatesRow()
     let headerNames = ["Состояние"].concat(this.GetAlphabet())
 
@@ -101,9 +116,92 @@ TuringMachine.prototype.InitStates = function() {
             let addBtn = document.createElement("div")
             addBtn.className = 'states-btn'
             addBtn.innerHTML = "+"
+            addBtn.onclick = function() { machine.AddState() }
             cell.appendChild(addBtn)
         }
     }
+
+    this.states = {}
+}
+
+TuringMachine.prototype.AddState = function() {
+    let state = "q" + Object.keys(this.states).length
+    let alphabet = this.GetAlphabet()
+    let row = this.MakeStatesRow()
+    row.id = "row-" + state
+
+    this.states[state] = {}
+    let stateCell = this.MakeStateCell(row, state)
+
+    let removeBtn = document.createElement("div")
+    removeBtn.className = 'states-btn'
+    removeBtn.innerHTML = "-"
+    removeBtn.onclick = function() { machine.RemoveState(state) }
+    stateCell.appendChild(removeBtn)
+
+    for (let i = 0; i < alphabet.length; i++) {
+        this.states[state][alphabet[i]] = [alphabet[i], 'N', state]
+        let cell = this.MakeStateCell(row)
+        this.MakeStatesInput(cell, state, alphabet[i])
+    }
+}
+
+TuringMachine.prototype.RemoveState = function(state) {
+    delete this.states[state]
+    this.statesBlock.removeChild(document.getElementById('row-' + state))
+
+    for (let state of Object.keys(this.states))
+        for (let char of Object.keys(this.states[state]))
+            this.ValidateStateCell(document.getElementById('states-cell-' + state + '-' + char), state, char)
+}
+
+TuringMachine.prototype.IsValidState = function(value) {
+    if (['', LEFT, NONE, RIGHT, STOP].indexOf(value) > -1)
+        return true
+
+    let values = value.split(/[ ,]+/gi)
+
+    if (values.length != 3)
+        return false
+
+    let alphabet = this.GetAlphabet()
+
+    if (alphabet.indexOf(values[0]) == -1)
+        return false
+
+    if ([LEFT, NONE, RIGHT].indexOf(values[1]) == -1)
+        return false
+
+    if (Object.keys(this.states).indexOf(values[2]) == -1)
+        return false
+
+    return true
+}
+
+TuringMachine.prototype.ParseState = function(value, state, char) {
+    if (value == '!')
+        return [char, NONE, STOP]
+
+    if (value == '')
+        return [char, NONE, state]
+
+    let values = value.split(/[ ,]+/gi)
+
+    if (values.length == 1)
+        return [char, value, state]
+
+    return values
+}
+
+TuringMachine.prototype.ValidateStateCell = function(input, state, char) {
+    if (this.IsValidState(input.value)) {
+        input.classList.remove('states-error')
+        this.states[state][char] = this.ParseState(input.value, state, char)
+        return
+    }
+
+    input.classList.add('states-error')
+    input.focus()
 }
 
 TuringMachine.prototype.MoveTape = function(dir) {

@@ -28,3 +28,17 @@
     color: #2196f3;
     border-color: #2196f3;
 }
+
+.states-cell-input {
+    background: transparent;
+    display: inline-block;
+    padding: 0;
+    border: none;
+    outline: none;
+    text-align: center;
+    width: 100%;
+}
+
+.states-error {
+    background: #faa;
+}
