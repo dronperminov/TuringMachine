@@ -1,0 +1,41 @@
+.turing-machine {
+    border: 1px solid #000;
+}
+
+.tape {
+    width: 100%;
+    display: table;
+    border-collapse: collapse;
+}
+
+.tape-cell {
+    display: table-cell;
+    border: 1px solid #000;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.tape-cell-input {
+    background: transparent;
+    display: inline-block;
+    padding: 0;
+    border: none;
+    outline: none;
+    text-align: center;
+    font: 20px 'Consolas';
+}
+
+.tape-cell-btn {
+    font: 30px 'Consolas';
+    user-select: none;
+    cursor: pointer;
+    vertical-align: top;
+}
+
+.tape-cell-btn:hover {
+    color: #2196f3;
+}
+
+.tape-cell-curr {
+    background: #b3ffb4;
+}
