@@ -3,11 +3,17 @@
 <head>
     <title>Машина Тьюринга</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <link rel="stylesheet" type="text/css" href="css/tape.css">
+    <link rel="stylesheet" type="text/css" href="css/states.css">
 </head>
 <body>
     <div class="turing-machine">
         <div class="tape" id="tape-box"></div>
+        <div class="alphabet">
+            <label>Алфавит:<input type="text" id="alphabet-box" value="ab" /></label>
+        </div>
+        <div class="states" id="states-box"></div>
     </div>
 
     <script src="js/constants.js"></script>
@@ -15,7 +21,7 @@
     <script src="js/turing_machine.js"></script>
 
     <script>
-        let machine = new TuringMachine("tape-box")
+        let machine = new TuringMachine("tape-box", "alphabet-box", "states-box")
     </script>
 </body>
 </html>

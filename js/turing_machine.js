@@ -1,12 +1,17 @@
-function TuringMachine(tapeBlockId) {
+function TuringMachine(tapeBlockId, alphabetId, statesBlockId) {
     this.tapeBlock = document.getElementById(tapeBlockId)
+    this.alphabetBox = document.getElementById(alphabetId)
+    this.statesBlock = document.getElementById(statesBlockId)
     
     let machine = this
     window.addEventListener('resize', function(e) { machine.Resize() }, true);
+    this.alphabetBox.onkeyup = function() {machine.InitStates() }
 
     this.tape = new Tape()
-    this.position = 0
     this.InitTape()
+    this.InitStates()
+    this.position = Math.floor(this.tape.size / 2)
+    this.tape.ToCells(this.position)
 }
 
 TuringMachine.prototype.MakeTapeCell = function() {
@@ -15,6 +20,22 @@ TuringMachine.prototype.MakeTapeCell = function() {
     cell.style.height = CELL_SIZE + 'px'
     cell.style.width = CELL_SIZE + 'px'
     this.tapeBlock.appendChild(cell)
+    return cell
+}
+
+TuringMachine.prototype.MakeStatesRow = function() {
+    let row = document.createElement("div")
+    row.className = "states-row"
+    this.statesBlock.appendChild(row)
+    return row
+}
+
+TuringMachine.prototype.MakeStateCell = function(row, text = "") {
+    let cell = document.createElement("div")
+    cell.className = "states-cell"
+    cell.innerHTML = text
+
+    row.appendChild(cell)
     return cell
 }
 
@@ -30,7 +51,7 @@ TuringMachine.prototype.MakeInput = function(index) {
     input.style.height = CELL_SIZE + 'px'
     input.maxLength = 1
     input.onkeyup = function() { machine.tape.Set(index, input.value) }
-    input.onkeydown = function(e) { machine.MoveCursor(e, index) }
+    input.onkeydown = function(e) { machine.TapeKeyDown(index, e) }
 
     let cell = this.MakeTapeCell()
     cell.appendChild(input)
@@ -54,7 +75,35 @@ TuringMachine.prototype.InitTape = function() {
         this.MakeInput(i)
 
     this.InitMoveTapeButton(this.MakeTapeCell(), '›', 1)
-    this.tape.ToCells(this.position)
+}
+
+TuringMachine.prototype.GetAlphabet = function() {
+    let alphabet = new Set(this.alphabetBox.value)
+    let alphabetArray = Array.from(alphabet)
+
+    this.alphabetBox.value = alphabetArray.join("")
+    return alphabetArray.concat(LAMBDA)
+}
+
+TuringMachine.prototype.InitStates = function() {
+
+    while (this.statesBlock.firstChild) {
+        this.statesBlock.firstChild.remove()
+    }
+
+    let header = this.MakeStatesRow()
+    let headerNames = ["Состояние"].concat(this.GetAlphabet())
+
+    for (let i = 0; i < headerNames.length; i++) {
+        let cell = this.MakeStateCell(header, headerNames[i])
+
+        if (i == 0) {
+            let addBtn = document.createElement("div")
+            addBtn.className = 'states-btn'
+            addBtn.innerHTML = "+"
+            cell.appendChild(addBtn)
+        }
+    }
 }
 
 TuringMachine.prototype.MoveTape = function(dir) {
@@ -74,13 +123,14 @@ TuringMachine.prototype.Resize = function() {
     }
 
     this.InitTape()
+    this.tape.ToCells(this.position)
 }
 
-TuringMachine.prototype.MoveCursor = function(e, index) {
-    if (e.key == "ArrowLeft" && index > 0) {
+TuringMachine.prototype.TapeKeyDown = function(index, e) {
+    if (e.key == "ArrowLeft") {
         index--
     }
-    else if (e.key == "ArrowRight" && index < this.tape.size - 1) {
+    else if (e.key == "ArrowRight") {
         index++
     }
     else if (e.key == "Home") {
@@ -88,6 +138,25 @@ TuringMachine.prototype.MoveCursor = function(e, index) {
     }
     else if (e.key == "End") {
         index = this.tape.size - 1
+    }
+    else if (e.key.length == 1) {
+        let alphabet = this.GetAlphabet()
+
+        if (alphabet.indexOf(e.key) == -1) {
+            e.preventDefault()
+            return
+        }
+    }
+
+    if (index > this.tape.size - 1) {
+        index--
+        this.tape.Right()
+        this.tape.ToCells(this.position)
+    }
+    else if (index < 0) {
+        index++
+        this.tape.Left()
+        this.tape.ToCells(this.position)
     }
 
     document.getElementById('tape-cell-' + index).focus()
