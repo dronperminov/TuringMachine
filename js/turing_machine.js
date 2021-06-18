@@ -30,6 +30,7 @@ TuringMachine.prototype.MakeInput = function(index) {
     input.style.height = CELL_SIZE + 'px'
     input.maxLength = 1
     input.onkeyup = function() { machine.tape.Set(index, input.value) }
+    input.onkeydown = function(e) { machine.MoveCursor(e, index) }
 
     let cell = this.MakeTapeCell()
     cell.appendChild(input)
@@ -73,4 +74,21 @@ TuringMachine.prototype.Resize = function() {
     }
 
     this.InitTape()
+}
+
+TuringMachine.prototype.MoveCursor = function(e, index) {
+    if (e.key == "ArrowLeft" && index > 0) {
+        index--
+    }
+    else if (e.key == "ArrowRight" && index < this.tape.size - 1) {
+        index++
+    }
+    else if (e.key == "Home") {
+        index = 0
+    }
+    else if (e.key == "End") {
+        index = this.tape.size - 1
+    }
+
+    document.getElementById('tape-cell-' + index).focus()
 }
