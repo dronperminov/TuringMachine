@@ -1,0 +1,30 @@
+.states {
+    width: 100%;
+    display: table;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.states-row {
+    display: table-row;
+}
+
+.states-cell {
+    display: table-cell;
+    border: 1px solid #000;
+    text-align: center;
+}
+
+.states-btn {
+    display: inline-block;
+    border: 1px solid #000;
+    border-radius: 100%;
+    padding: 0px 5px;
+    margin: 2px 5px;
+    cursor: pointer;
+}
+
+.states-btn:hover {
+    color: #2196f3;
+    border-color: #2196f3;
+}

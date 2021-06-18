@@ -1,0 +1,7 @@
+.turing-machine, .turing-machine input[type="text"] {
+    font: 20px 'Consolas';
+}
+
+.alphabet {
+    margin-top: 10px;
+}
