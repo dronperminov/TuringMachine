@@ -7,6 +7,10 @@
     display: inline-block;
 }
 
+.alphabet input {
+    max-width: 165px;
+}
+
 .controls {
     display: inline-block;
 }

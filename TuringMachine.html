@@ -17,9 +17,11 @@
 
             <div class="controls">
                 <input type="submit" class="control-btn" value="Запустить" onclick="machine.Run()">
+                <input type="submit" class="control-btn" value="Очистить" onclick="machine.ClearTape()">
             </div>
         </div>
         <div class="states" id="states-box"></div>
+        <div id="info-box"></div>
     </div>
 
     <script src="js/constants.js"></script>
@@ -27,7 +29,7 @@
     <script src="js/turing_machine.js"></script>
 
     <script>
-        let machine = new TuringMachine("tape-box", "alphabet-box", "states-box")
+        let machine = new TuringMachine("tape-box", "alphabet-box", "states-box", "info-box")
     </script>
 </body>
 </html>

@@ -1,7 +1,8 @@
-function TuringMachine(tapeBlockId, alphabetId, statesBlockId) {
+function TuringMachine(tapeBlockId, alphabetId, statesBlockId, infoBlockId) {
     this.tapeBlock = document.getElementById(tapeBlockId)
     this.alphabetBox = document.getElementById(alphabetId)
     this.statesBlock = document.getElementById(statesBlockId)
+    this.infoBlock = document.getElementById(infoBlockId)
     
     let machine = this
     window.addEventListener('resize', function(e) { machine.Resize() }, true);
@@ -54,6 +55,7 @@ TuringMachine.prototype.MakeTapeInput = function(index) {
     input.maxLength = 1
     input.onkeyup = function() { machine.tape.Set(index, input.value) }
     input.onkeydown = function(e) { machine.TapeKeyDown(index, e) }
+    input.ondblclick = function(e) { machine.UpdatePosition(index) }
 
     let cell = this.MakeTapeCell()
     cell.appendChild(input)
@@ -211,7 +213,7 @@ TuringMachine.prototype.IsValidState = function(value) {
     if ([LEFT, NONE, RIGHT].indexOf(values[1]) == -1)
         return false
 
-    if (Object.keys(this.states).indexOf(values[2]) == -1)
+    if (Object.keys(this.states).indexOf(values[2]) == -1 && values[2] != STOP)
         return false
 
     return true
@@ -246,8 +248,10 @@ TuringMachine.prototype.ValidateStateCell = function(input, state, char) {
 TuringMachine.prototype.MoveTape = function(dir) {
     if (dir > 0) {
         this.tape.Left()
+        this.position++
     }
     else {
+        this.position--
         this.tape.Right()
     }
 
@@ -299,7 +303,12 @@ TuringMachine.prototype.TapeKeyDown = function(index, e) {
     document.getElementById('tape-cell-' + index).focus()
 }
 
-TuringMachine.prototype.Run = function() {
+TuringMachine.prototype.UpdatePosition = function(index) {
+    this.position = index;
+    this.tape.ToCells(this.position)
+}
+
+TuringMachine.prototype.Run = function(maxIterations = 10000) {
     let state = "q0"
 
     if (!(state in this.states)) { // TODO
@@ -307,11 +316,14 @@ TuringMachine.prototype.Run = function() {
         return
     }
 
-    while (state != "!") {
+    let iterations = 0
+
+    while (state != STOP && iterations < maxIterations) {
+        iterations++
+
         let char = this.tape.Get(this.position)
         let value = this.states[state][char]
 
-        console.log(state, char, "\t", value)
         this.tape.Set(this.position, value[0])
 
         if (value[1] == LEFT) {
@@ -324,4 +336,16 @@ TuringMachine.prototype.Run = function() {
         state = value[2]
         this.tape.ToCells(this.position)
     }
+
+    if (iterations == maxIterations) {
+        this.infoBlock.innerHTML = "Превышено максимальное число итераций (" + iterations + ")"
+    }
+    else {
+        this.infoBlock.innerHTML = "Количество итераций: " + iterations
+    }
+}
+
+TuringMachine.prototype.ClearTape = function() {
+    this.tape.Clear()
+    this.tape.ToCells(this.position)
 }

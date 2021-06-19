@@ -46,12 +46,20 @@ Tape.prototype.ToString = function() {
     return word
 }
 
+Tape.prototype.Clear = function() {
+    for (let key of Object.keys(this.chars))
+        this.chars[key] = LAMBDA
+}
+
 Tape.prototype.ToCells = function(position) {
     for (let i = 0; i < this.size; i++) {
         let cell = document.getElementById('tape-cell-' + i)
-        cell.value = this.Get(i, '')
+        cell.value = this.Get(i)
 
-        if (this.start + i == position) {
+        if (cell.value == LAMBDA)
+            cell.value = ''
+
+        if (i == position) {
             cell.parentElement.classList.add('tape-cell-curr')
         }
         else {
