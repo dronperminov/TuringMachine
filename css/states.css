@@ -39,6 +39,10 @@
     width: 100%;
 }
 
+.states-cell-name-input {
+    width: calc(100% - 40px);
+}
+
 .states-error {
     background: #faa;
 }

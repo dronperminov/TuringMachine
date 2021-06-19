@@ -1,7 +1,25 @@
-.turing-machine, .turing-machine input[type="text"] {
+.turing-machine, .turing-machine input {
     font: 20px 'Consolas';
 }
 
 .alphabet {
     margin-top: 10px;
+    display: inline-block;
+}
+
+.controls {
+    display: inline-block;
+}
+
+.control-btn {
+    background: transparent;
+    border: 1px solid #000;
+    padding: 4px 5px;
+    font-size: 18px !important;
+    cursor: pointer;
+}
+
+.control-btn:hover {
+    color: #2196f3;
+    border-color: #2196f3;
 }

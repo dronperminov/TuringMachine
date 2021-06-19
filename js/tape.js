@@ -5,6 +5,9 @@ function Tape(size = 1) {
 }
 
 Tape.prototype.Set = function(index, char) {
+    if (char == '')
+        char = LAMBDA
+
     this.chars[this.start + index] = char
 }
 

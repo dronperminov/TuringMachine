@@ -10,8 +10,14 @@
 <body>
     <div class="turing-machine">
         <div class="tape" id="tape-box"></div>
-        <div class="alphabet">
-            <label>Алфавит:<input type="text" id="alphabet-box" value="ab" /></label>
+        <div>
+            <div class="alphabet">
+                <label>Алфавит:<input type="text" id="alphabet-box" value="ab" /></label>
+            </div>
+
+            <div class="controls">
+                <input type="submit" class="control-btn" value="Запустить" onclick="machine.Run()">
+            </div>
         </div>
         <div class="states" id="states-box"></div>
     </div>
