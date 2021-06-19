@@ -6,7 +6,7 @@ function TuringMachine(tapeBlockId, alphabetId, statesBlockId, infoBlockId) {
     
     let machine = this
     window.addEventListener('resize', function(e) { machine.Resize() }, true);
-    this.alphabetBox.onkeyup = function() {machine.InitStates() }
+    this.alphabetBox.onkeyup = function() { machine.UpdateAlphabet() }
 
     this.tape = new Tape()
     this.states = {}
@@ -28,19 +28,26 @@ TuringMachine.prototype.MakeTapeCell = function() {
     return cell
 }
 
-TuringMachine.prototype.MakeStatesRow = function() {
+TuringMachine.prototype.MakeStatesRow = function(id) {
     let row = document.createElement("div")
     row.className = "states-row"
+    row.id = id
     this.statesBlock.appendChild(row)
     return row
 }
 
-TuringMachine.prototype.MakeStateCell = function(row, text = "") {
+TuringMachine.prototype.MakeStateCell = function(row, text = "", index = -1) {
     let cell = document.createElement("div")
     cell.className = "states-cell"
     cell.innerHTML = text
 
-    row.appendChild(cell)
+    if (index == -1) {
+        row.appendChild(cell)
+    }
+    else {
+        row.insertBefore(cell, row.children[index + 1])
+    }
+
     return cell
 }
 
@@ -124,8 +131,9 @@ TuringMachine.prototype.InitStates = function() {
     }
 
     let machine = this
-    let header = this.MakeStatesRow()
-    let headerNames = ["Состояние"].concat(this.GetAlphabet())
+    let header = this.MakeStatesRow("row-header")
+    let alphabet = this.GetAlphabet()
+    let headerNames = ["Состояние"].concat(alphabet)
 
     for (let i = 0; i < headerNames.length; i++) {
         let cell = this.MakeStateCell(header, headerNames[i])
@@ -137,9 +145,54 @@ TuringMachine.prototype.InitStates = function() {
             addBtn.onclick = function() { machine.AddState() }
             cell.appendChild(addBtn)
         }
+        else {
+            cell.id = "states-header-" + headerNames[i]
+        }
     }
 
     this.states = {}
+    this.alphabet = alphabet
+}
+
+TuringMachine.prototype.RemoveCharFromStates = function(char) {
+    for (let state of Object.keys(this.states)) {
+        delete this.states[state][char]
+        let row = document.getElementById("row-" + state)
+        let cell = document.getElementById("states-cell-" + state + "-" + char).parentNode
+        row.removeChild(cell)
+    }
+
+    let header = document.getElementById("row-header")
+    let cell = document.getElementById("states-header-" + char)
+    header.removeChild(cell)
+}
+
+TuringMachine.prototype.AddCharToStates = function(char, index) {
+    for (let state of Object.keys(this.states)) {
+        this.states[state][char] = [char, 'N', state]
+        let row = document.getElementById("row-" + state)
+        let cell = this.MakeStateCell(row, '', index)
+        this.MakeStatesInput(cell, state, char)
+    }
+
+    let header = document.getElementById("row-header")
+    let cell = this.MakeStateCell(header, char, index)
+    cell.id = "states-header-" + char
+}
+
+TuringMachine.prototype.UpdateAlphabet = function() {
+    let alphabet = this.GetAlphabet()
+
+    for (let i = 0; i < this.alphabet.length; i++)
+        if (alphabet.indexOf(this.alphabet[i]) == -1)
+            this.RemoveCharFromStates(this.alphabet[i])
+
+    for (let i = 0; i < alphabet.length; i++)
+        if (this.alphabet.indexOf(alphabet[i]) == -1)
+            this.AddCharToStates(alphabet[i], i)
+
+    this.ValidateAllCells()
+    this.alphabet = alphabet
 }
 
 TuringMachine.prototype.AddState = function(state = null) {
@@ -147,8 +200,7 @@ TuringMachine.prototype.AddState = function(state = null) {
         state = "q" + Object.keys(this.states).length
 
     let alphabet = this.GetAlphabet()
-    let row = this.MakeStatesRow()
-    row.id = "row-" + state
+    let row = this.MakeStatesRow("row-" + state)
 
     this.states[state] = {}
     let stateCell = this.MakeStateCell(row)
