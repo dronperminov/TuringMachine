@@ -69,7 +69,7 @@ TuringMachine.prototype.MakeStatesInput = function(cell, state, char) {
     input.id = 'states-cell-' + state + '-' + char
     input.value = ""
     input.placeholder = 'N'
-    input.onchange = function() { machine.ValidateStateCell(input, state, char) }
+    input.onchange = function() { machine.ValidateStateCell(input) }
 
     cell.appendChild(input)
 }
@@ -165,7 +165,7 @@ TuringMachine.prototype.AddState = function() {
 TuringMachine.prototype.ValidateAllCells = function() {
     for (let state of Object.keys(this.states))
         for (let char of Object.keys(this.states[state]))
-            this.ValidateStateCell(document.getElementById('states-cell-' + state + '-' + char), state, char)
+            this.ValidateStateCell(document.getElementById('states-cell-' + state + '-' + char))
 }
 
 TuringMachine.prototype.RemoveState = function(state) {
@@ -234,7 +234,11 @@ TuringMachine.prototype.ParseState = function(value, state, char) {
     return values
 }
 
-TuringMachine.prototype.ValidateStateCell = function(input, state, char) {
+TuringMachine.prototype.ValidateStateCell = function(input) {
+    let args = input.id.split('-')
+    let state = args[2]
+    let char = args[3]
+
     if (this.IsValidState(input.value)) {
         input.classList.remove('states-error')
         this.states[state][char] = this.ParseState(input.value, state, char)
