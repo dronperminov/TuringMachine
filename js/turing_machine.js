@@ -13,6 +13,8 @@ function TuringMachine(tapeBlockId, alphabetId, statesBlockId, infoBlockId) {
 
     this.InitTape()
     this.InitStates()
+    this.Reset()
+
     this.position = Math.floor(this.tape.size / 2)
     this.tape.ToCells(this.position)
 }
@@ -205,6 +207,9 @@ TuringMachine.prototype.IsValidState = function(value) {
     if (values.length != 3)
         return false
 
+    if (values[0] == "")
+        values[0] = LAMBDA
+
     let alphabet = this.GetAlphabet()
 
     if (alphabet.indexOf(values[0]) == -1)
@@ -230,6 +235,9 @@ TuringMachine.prototype.ParseState = function(value, state, char) {
 
     if (values.length == 1)
         return [char, value, state]
+
+    if (values[0] == "")
+        values[0] = LAMBDA
 
     return values
 }
@@ -295,13 +303,11 @@ TuringMachine.prototype.TapeKeyDown = function(index, e) {
 
     if (index > this.tape.size - 1) {
         index--
-        this.tape.Right()
-        this.tape.ToCells(this.position)
+        this.MoveTape(-1)
     }
     else if (index < 0) {
         index++
-        this.tape.Left()
-        this.tape.ToCells(this.position)
+        this.MoveTape(1)
     }
 
     document.getElementById('tape-cell-' + index).focus()
@@ -312,40 +318,82 @@ TuringMachine.prototype.UpdatePosition = function(index) {
     this.tape.ToCells(this.position)
 }
 
-TuringMachine.prototype.Run = function(maxIterations = 10000) {
-    let state = "q0"
+TuringMachine.prototype.Reset = function() {
+    this.state = "q0"
+    this.iterations = 0
+}
 
-    if (!(state in this.states)) { // TODO
+TuringMachine.prototype.Run = function(maxIterations = 10000) {
+    this.Reset()
+
+    if (!(this.state in this.states)) { // TODO
         alert("Состояние q0 не обнаружено!")
         return
     }
 
-    let iterations = 0
-
-    while (state != STOP && iterations < maxIterations) {
-        iterations++
-
-        let char = this.tape.Get(this.position)
-        let value = this.states[state][char]
-
-        this.tape.Set(this.position, value[0])
-
-        if (value[1] == LEFT) {
-            this.position--
-        }
-        else if (value[1] == RIGHT) {
-            this.position++
-        }
-
-        state = value[2]
-        this.tape.ToCells(this.position)
+    while (this.state != STOP && this.iterations < maxIterations) {
+        this.Step(false)
     }
 
-    if (iterations == maxIterations) {
-        this.infoBlock.innerHTML = "Превышено максимальное число итераций (" + iterations + ")"
+    if (this.iterations == maxIterations) {
+        this.infoBlock.innerHTML = "Превышено максимальное число итераций (" + this.iterations + ")"
     }
     else {
-        this.infoBlock.innerHTML = "Количество итераций: " + iterations
+        this.infoBlock.innerHTML = "Количество итераций: " + this.iterations
+    }
+}
+
+TuringMachine.prototype.Step = function(showLog = true) {
+    if (showLog && this.state == STOP) {
+        this.Reset()
+        this.infoBlock.innerHTML = ""
+    }
+
+    this.iterations++
+
+    let state = this.state
+    let char = this.tape.Get(this.position)
+    let value = this.states[this.state][char]
+
+    this.tape.Set(this.position, value[0])
+
+    if (value[1] == LEFT) {
+        this.position--
+    }
+    else if (value[1] == RIGHT) {
+        this.position++
+    }
+
+    this.state = value[2]
+    this.tape.ToCells(this.position)
+
+    if (!showLog)
+        return
+
+    let prev = "〈" + char + ", " + state + "〉"
+    let next = "〈" + value[0] + ", " + value[2] + "〉"
+    let action = ""
+
+    if (value[1] == LEFT) {
+        action = "сдвиг влево"
+    }
+    else if (value[1] == RIGHT) {
+        action = "сдвиг вправо"
+    }
+
+    this.infoBlock.innerHTML += "Шаг " + this.iterations + ":" + prev + "→" + next
+
+    if (this.state == STOP) {
+        if (action != "")
+            action += ", "
+
+        this.infoBlock.innerHTML += "(" + action + "достигнуто терминальное состояние)<br>"
+    }
+    else {
+        if (action != "")
+            action = "(" + action + ")"
+
+        this.infoBlock.innerHTML += action + "<br>"
     }
 }
 
