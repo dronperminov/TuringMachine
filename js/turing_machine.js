@@ -251,9 +251,19 @@ TuringMachine.prototype.RenameState = function(prevState, newState) {
     this.ValidateAllCells()
 }
 
+TuringMachine.prototype.StateToString = function(state, char, nextChar, action, nextState) {
+    if (state == nextState && char == nextChar)
+        return action
+
+    if (char == nextChar && action == NONE && nextState == STOP)
+        return STOP
+
+    return nextChar + ' ' + action + ' ' + nextState
+}
+
 TuringMachine.prototype.SetState = function(state, char, nextChar, action, nextState) {
     let cell = document.getElementById("states-cell-" + state + "-" + char)
-    cell.value = nextChar + ' ' + action + ' ' + nextState
+    cell.value = this.StateToString(state, char, nextChar, action, nextState)
     this.ValidateStateCell(cell)
 }
 
