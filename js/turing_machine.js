@@ -87,6 +87,7 @@ TuringMachine.prototype.MakeStatesNameInput = function(cell, state) {
     input.onchange = function() { machine.ValidateStateName(input) }
 
     cell.appendChild(input)
+    return input
 }
 
 TuringMachine.prototype.InitMoveTapeButton = function(btn, text, dir) {
@@ -149,12 +150,12 @@ TuringMachine.prototype.AddState = function() {
 
     this.states[state] = {}
     let stateCell = this.MakeStateCell(row)
-    this.MakeStatesNameInput(stateCell, state)
+    let stateInput = this.MakeStatesNameInput(stateCell, state)
 
     let removeBtn = document.createElement("div")
     removeBtn.className = 'states-btn'
     removeBtn.innerHTML = "-"
-    removeBtn.onclick = function() { machine.RemoveState(state) }
+    removeBtn.onclick = function() { machine.RemoveState(stateInput.value) }
     stateCell.appendChild(removeBtn)
 
     for (let i = 0; i < alphabet.length; i++) {
@@ -176,6 +177,24 @@ TuringMachine.prototype.RemoveState = function(state) {
     this.ValidateAllCells()
 }
 
+TuringMachine.prototype.RenameState = function(prevState, newState) {
+    let input = document.getElementById('states-cell-' + prevState)
+    input.classList.remove('states-error')
+    input.id = 'states-cell-' + newState
+
+    let row = document.getElementById("row-" + prevState)
+    row.id = "row-" + newState
+
+    for (let char of Object.keys(this.states[prevState])) {
+        let cell = document.getElementById('states-cell-' + prevState + '-' + char)
+        cell.id = 'states-cell-' + newState + '-' + char
+    }
+
+    let states = this.states[prevState]
+    delete this.states[prevState]
+    this.states[newState] = states
+}
+
 TuringMachine.prototype.ValidateStateName = function(input) {
     if (input.value in this.states) {
         input.classList.add('states-error')
@@ -183,18 +202,7 @@ TuringMachine.prototype.ValidateStateName = function(input) {
         return
     }
 
-    let state = input.id.substr(12)
-    input.classList.remove('states-error')
-    input.id = 'states-cell-' + input.value
-
-    for (let char of Object.keys(this.states[state])) {
-        let cell = document.getElementById('states-cell-' + state + '-' + char)
-        cell.id = 'states-cell-' + input.value + '-' + char
-    }
-
-    let states = this.states[state]
-    delete this.states[state]
-    this.states[input.value] = states
+    this.RenameState(input.id.substr(12), input.value)
     this.ValidateAllCells()
 }
 
