@@ -46,3 +46,7 @@
 .states-error {
     background: #faa;
 }
+
+.states-curr {
+    background: #b3ffb4;
+}

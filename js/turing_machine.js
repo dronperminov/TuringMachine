@@ -360,6 +360,18 @@ TuringMachine.prototype.Run = function() {
     }
 }
 
+TuringMachine.prototype.SetCurrStateCell = function(state, char) {
+    for (let state of Object.keys(this.states)) {
+        for (let char of Object.keys(this.states[state])) {
+            let cell = document.getElementById('states-cell-' + state + '-' + char)
+            cell.parentNode.classList.remove("states-curr")
+        }
+    }
+
+    let cell = document.getElementById("states-cell-" + state + "-" + char)
+    cell.parentNode.classList.add("states-curr")
+}
+
 TuringMachine.prototype.Step = function(showLog = true) {
     if (showLog && (this.state == STOP || this.iterations == MAX_ITERATIONS)) {
         this.Reset()
@@ -371,6 +383,8 @@ TuringMachine.prototype.Step = function(showLog = true) {
     let state = this.state
     let char = this.tape.Get(this.position)
     let value = this.states[this.state][char]
+
+    this.SetCurrStateCell(state, char, true)
 
     this.tape.Set(this.position, value[0])
 
