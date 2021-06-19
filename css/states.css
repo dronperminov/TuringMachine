@@ -24,9 +24,10 @@
     display: inline-block;
     border: 1px solid #000;
     border-radius: 100%;
-    padding: 0px 5px;
     margin: 2px 5px;
     cursor: pointer;
+    width: 24px;
+    height: 24px;
 }
 
 .states-btn:hover {
