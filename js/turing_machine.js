@@ -117,6 +117,11 @@ TuringMachine.prototype.InitTape = function() {
     this.InitMoveTapeButton(this.MakeTapeCell(), '›', 1)
 }
 
+TuringMachine.prototype.SetAlphabet = function(alphabet) {
+    this.alphabetBox.value = alphabet
+    this.UpdateAlphabet()
+}
+
 TuringMachine.prototype.GetAlphabet = function() {
     let alphabet = new Set(this.alphabetBox.value)
     let alphabetArray = Array.from(alphabet)
