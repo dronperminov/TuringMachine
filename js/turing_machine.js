@@ -142,8 +142,10 @@ TuringMachine.prototype.InitStates = function() {
     this.states = {}
 }
 
-TuringMachine.prototype.AddState = function() {
-    let state = "q" + Object.keys(this.states).length
+TuringMachine.prototype.AddState = function(state = null) {
+    if (state == null)
+        state = "q" + Object.keys(this.states).length
+
     let alphabet = this.GetAlphabet()
     let row = this.MakeStatesRow()
     row.id = "row-" + state
@@ -181,6 +183,7 @@ TuringMachine.prototype.RenameState = function(prevState, newState) {
     let input = document.getElementById('states-cell-' + prevState)
     input.classList.remove('states-error')
     input.id = 'states-cell-' + newState
+    input.value = newState
 
     let row = document.getElementById("row-" + prevState)
     row.id = "row-" + newState
@@ -193,6 +196,13 @@ TuringMachine.prototype.RenameState = function(prevState, newState) {
     let states = this.states[prevState]
     delete this.states[prevState]
     this.states[newState] = states
+    this.ValidateAllCells()
+}
+
+TuringMachine.prototype.SetState = function(state, char, nextChar, action, nextState) {
+    let cell = document.getElementById("states-cell-" + state + "-" + char)
+    cell.value = nextChar + ' ' + action + ' ' + nextState
+    this.ValidateStateCell(cell)
 }
 
 TuringMachine.prototype.ValidateStateName = function(input) {
@@ -203,7 +213,6 @@ TuringMachine.prototype.ValidateStateName = function(input) {
     }
 
     this.RenameState(input.id.substr(12), input.value)
-    this.ValidateAllCells()
 }
 
 TuringMachine.prototype.IsValidState = function(value) {
@@ -331,7 +340,7 @@ TuringMachine.prototype.Reset = function() {
     this.iterations = 0
 }
 
-TuringMachine.prototype.Run = function(maxIterations = 10000) {
+TuringMachine.prototype.Run = function() {
     this.Reset()
 
     if (!(this.state in this.states)) { // TODO
@@ -339,11 +348,11 @@ TuringMachine.prototype.Run = function(maxIterations = 10000) {
         return
     }
 
-    while (this.state != STOP && this.iterations < maxIterations) {
+    while (this.state != STOP && this.iterations < MAX_ITERATIONS) {
         this.Step(false)
     }
 
-    if (this.iterations == maxIterations) {
+    if (this.iterations == MAX_ITERATIONS) {
         this.infoBlock.innerHTML = "Превышено максимальное число итераций (" + this.iterations + ")"
     }
     else {
@@ -352,7 +361,7 @@ TuringMachine.prototype.Run = function(maxIterations = 10000) {
 }
 
 TuringMachine.prototype.Step = function(showLog = true) {
-    if (showLog && this.state == STOP) {
+    if (showLog && (this.state == STOP || this.iterations == MAX_ITERATIONS)) {
         this.Reset()
         this.infoBlock.innerHTML = ""
     }
