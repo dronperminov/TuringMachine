@@ -79,6 +79,7 @@ TuringMachine.prototype.MakeStatesInput = function(cell, state, char) {
     input.value = ""
     input.placeholder = 'N'
     input.onchange = function() { machine.ValidateStateCell(input) }
+    input.onkeydown = function(e) { machine.StatesKeyDown(input, e) }
 
     cell.appendChild(input)
 }
@@ -395,6 +396,46 @@ TuringMachine.prototype.TapeKeyDown = function(index, e) {
     }
 
     document.getElementById('tape-cell-' + index).focus()
+}
+
+TuringMachine.prototype.GetStateNames = function() {
+    let states = []
+
+    for (let i = 1; i < this.statesBlock.children.length; i++) {
+        let id = this.statesBlock.children[i].id
+        states.push(id.split('-')[1])
+    }
+
+    return states
+}
+
+TuringMachine.prototype.StatesKeyDown = function(input, e) {
+    let args = input.id.split('-')
+
+    let states = this.GetStateNames()
+    let rowIndex = states.indexOf(args[2])
+    let charIndex = this.alphabet.indexOf(args[3])
+
+    if (e.key == 'ArrowUp') {
+        rowIndex--
+    }
+    else if (e.key == 'ArrowDown') {
+        rowIndex++
+    }
+    else if (e.key == 'ArrowLeft' && input.selectionStart == 0) {
+        charIndex--
+        e.preventDefault()
+    }
+    else if (e.key == 'ArrowRight' && input.selectionStart == input.value.length) {
+        charIndex++
+        e.preventDefault()
+    }
+
+    args[2] = states[(rowIndex + states.length) % states.length]
+    args[3] = this.alphabet[(charIndex + this.alphabet.length) % this.alphabet.length]
+
+    let cell = document.getElementById(args.join("-"))
+    cell.focus()
 }
 
 TuringMachine.prototype.UpdatePosition = function(index) {
