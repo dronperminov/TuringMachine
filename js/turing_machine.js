@@ -571,6 +571,7 @@ TuringMachine.prototype.ClearTape = function() {
 
 TuringMachine.prototype.SetInputWord = function(word) {
     this.inputWordBox.value = word
+    this.ClearTape()
     this.WordToTape()
 }
 
@@ -580,6 +581,9 @@ TuringMachine.prototype.WordToTape = function() {
     for (let i = 0; i < word.length; i++)
         if (this.alphabet.indexOf(word[i]) > -1)
             this.tape.Set(this.position + i, word[i])
+
+    while (this.position > 0 && this.position + word.length > this.tape.size)
+        this.MoveTape(-1)
 
     this.tape.ToCells(this.position)
 }
