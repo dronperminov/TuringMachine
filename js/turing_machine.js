@@ -1,6 +1,7 @@
-function TuringMachine(tapeBlockId, alphabetId, statesBlockId, infoBlockId) {
+function TuringMachine(tapeBlockId, alphabetId, inputWordId, statesBlockId, infoBlockId) {
     this.tapeBlock = document.getElementById(tapeBlockId)
     this.alphabetBox = document.getElementById(alphabetId)
+    this.inputWordBox = document.getElementById(inputWordId)
     this.statesBlock = document.getElementById(statesBlockId)
     this.infoBlock = document.getElementById(infoBlockId)
     
@@ -226,9 +227,15 @@ TuringMachine.prototype.AddState = function(state = null) {
 }
 
 TuringMachine.prototype.ValidateAllCells = function() {
+    this.ClearStateSelection()
+
+    let isValid = true
+
     for (let state of Object.keys(this.states))
         for (let char of Object.keys(this.states[state]))
-            this.ValidateStateCell(document.getElementById('states-cell-' + state + '-' + char))
+            isValid &= this.ValidateStateCell(document.getElementById('states-cell-' + state + '-' + char))
+
+    return isValid
 }
 
 TuringMachine.prototype.RemoveState = function(state) {
@@ -239,7 +246,7 @@ TuringMachine.prototype.RemoveState = function(state) {
 
 TuringMachine.prototype.RenameState = function(prevState, newState) {
     let input = document.getElementById('states-cell-' + prevState)
-    input.classList.remove('states-error')
+    input.parentNode.classList.remove('states-error')
     input.id = 'states-cell-' + newState
     input.value = newState
 
@@ -275,7 +282,7 @@ TuringMachine.prototype.SetState = function(state, char, nextChar, action, nextS
 
 TuringMachine.prototype.ValidateStateName = function(input) {
     if (input.value in this.states) {
-        input.classList.add('states-error')
+        input.parentNode.classList.add('states-error')
         input.focus()
         return
     }
@@ -333,13 +340,14 @@ TuringMachine.prototype.ValidateStateCell = function(input) {
     let char = args[3]
 
     if (this.IsValidState(input.value)) {
-        input.classList.remove('states-error')
+        input.parentNode.classList.remove('states-error')
         this.states[state][char] = this.ParseState(input.value, state, char)
-        return
+        return true
     }
 
-    input.classList.add('states-error')
+    input.parentNode.classList.add('states-error')
     input.focus()
+    return false
 }
 
 TuringMachine.prototype.MoveTape = function(dir) {
@@ -451,8 +459,13 @@ TuringMachine.prototype.Reset = function() {
 TuringMachine.prototype.Run = function() {
     this.Reset()
 
-    if (!(this.state in this.states)) { // TODO
-        alert("Состояние q0 не обнаружено!")
+    if (!this.ValidateAllCells()) {
+        alert("Обнаружены неверно заданные состояния. Пожалуйста, исправьте их")
+        return
+    }
+
+    if (!(this.state in this.states)) {
+        alert("Состояние " + this.state + " не обнаружено!")
         return
     }
 
@@ -468,19 +481,27 @@ TuringMachine.prototype.Run = function() {
     }
 }
 
-TuringMachine.prototype.SetCurrStateCell = function(state, char) {
+TuringMachine.prototype.ClearStateSelection = function() {
     for (let state of Object.keys(this.states)) {
         for (let char of Object.keys(this.states[state])) {
             let cell = document.getElementById('states-cell-' + state + '-' + char)
             cell.parentNode.classList.remove("states-curr")
         }
     }
+}
 
+TuringMachine.prototype.SetCurrStateCell = function(state, char) {
+    this.ClearStateSelection()
     let cell = document.getElementById("states-cell-" + state + "-" + char)
     cell.parentNode.classList.add("states-curr")
 }
 
 TuringMachine.prototype.Step = function(showLog = true) {
+    if (this.state != STOP && !(this.state in this.states)) {
+        alert("Состояние " + this.state + " не обнаружено!")
+        return
+    }
+
     if (showLog && (this.state == STOP || this.iterations == MAX_ITERATIONS)) {
         this.Reset()
         this.infoBlock.innerHTML = ""
@@ -492,7 +513,7 @@ TuringMachine.prototype.Step = function(showLog = true) {
     let char = this.tape.Get(this.position)
     let value = this.states[this.state][char]
 
-    this.SetCurrStateCell(state, char, true)
+    this.SetCurrStateCell(state, char)
 
     this.tape.Set(this.position, value[0])
 
@@ -545,5 +566,20 @@ TuringMachine.prototype.Step = function(showLog = true) {
 
 TuringMachine.prototype.ClearTape = function() {
     this.tape.Clear()
+    this.tape.ToCells(this.position)
+}
+
+TuringMachine.prototype.SetInputWord = function(word) {
+    this.inputWordBox.value = word
+    this.WordToTape()
+}
+
+TuringMachine.prototype.WordToTape = function() {
+    let word = this.inputWordBox.value
+
+    for (let i = 0; i < word.length; i++)
+        if (this.alphabet.indexOf(word[i]) > -1)
+            this.tape.Set(this.position + i, word[i])
+
     this.tape.ToCells(this.position)
 }

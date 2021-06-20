@@ -12,14 +12,21 @@
     <div class="turing-machine">
         <div class="tape" id="tape-box"></div>
         <div>
-            <div class="alphabet">
-                <label>Алфавит:<input type="text" id="alphabet-box" value="ab" /></label>
+            <div class="input-word">
+                <label>Слово:<input type="text" id="input-word-box" value="abaabbbb" /></label>
+                <input type="submit" class="control-btn" value="Поместить" onclick="machine.WordToTape()">
             </div>
 
-            <div class="controls">
-                <input type="submit" class="control-btn" value="Запустить" onclick="machine.Run()">
-                <input type="submit" class="control-btn" value="Сделать шаг" onclick="machine.Step()">
-                <input type="submit" class="control-btn" value="Очистить ленту" onclick="machine.ClearTape()">
+            <div>
+                <div class="alphabet">
+                    <label>Алфавит:<input type="text" id="alphabet-box" value="ab" /></label>
+                </div>
+
+                <div class="controls">
+                    <input type="submit" class="control-btn" value="Запустить" onclick="machine.Run()">
+                    <input type="submit" class="control-btn" value="Сделать шаг" onclick="machine.Step()">
+                    <input type="submit" class="control-btn" value="Очистить ленту" onclick="machine.ClearTape()">
+                </div>
             </div>
         </div>
         <div class="scroll-block">
@@ -43,7 +50,7 @@
     <script src="js/examples.js"></script>
 
     <script>
-        let machine = new TuringMachine("tape-box", "alphabet-box", "states-box", "info-box")
+        let machine = new TuringMachine("tape-box", "alphabet-box", "input-word-box", "states-box", "info-box")
     </script>
 </body>
 </html>
