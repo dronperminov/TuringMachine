@@ -3,6 +3,7 @@ function IncrementExample(machine, n) {
 
     machine.InitStates()
     machine.SetAlphabet(alphabet.substr(0, n))
+    machine.SetInputWord("1011")
     machine.AddState("q0")
     machine.AddState("q1")
     machine.AddState("q2")
@@ -27,6 +28,7 @@ function IncrementExample(machine, n) {
 function InverseExample(machine) {
     machine.InitStates()
     machine.SetAlphabet("ab")
+    machine.SetInputWord("abaabbaaabbb")
     machine.AddState("q0")
 
     machine.SetState("q0", "a", "b", RIGHT, "q0")
