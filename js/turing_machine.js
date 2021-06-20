@@ -506,6 +506,13 @@ TuringMachine.prototype.Step = function(showLog = true) {
     this.state = value[2]
     this.tape.ToCells(this.position)
 
+    if (this.position < 0) {
+        this.MoveTape(1)
+    }
+    else if (this.position >= this.tape.size) {
+        this.MoveTape(-1)
+    }
+
     if (!showLog)
         return
 
