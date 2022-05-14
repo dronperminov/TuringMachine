@@ -148,7 +148,7 @@ TuringMachine.prototype.SetAlphabet = function(alphabet) {
 
 TuringMachine.prototype.GetAlphabet = function() {
     let alphabet = new Set(this.alphabetBox.value)
-    let alphabetArray = Array.from(alphabet)
+    let alphabetArray = Array.from(alphabet).filter((char) => char.match(/\s+/g) == null)
 
     this.alphabetBox.value = alphabetArray.join("")
     return alphabetArray.concat(LAMBDA)
@@ -280,6 +280,9 @@ TuringMachine.prototype.RemoveState = function(state) {
     this.statesBlock.removeChild(document.getElementById('row-' + state))
     this.ValidateAllCells()
     this.UpdateInitStateBox()
+
+    if (this.state == state)
+        this.state = null
 }
 
 TuringMachine.prototype.RemoveAllStates = function() {
@@ -556,16 +559,16 @@ TuringMachine.prototype.SetCurrStateCell = function(state, char) {
 }
 
 TuringMachine.prototype.Step = function(showLog = true) {
-    if (this.state != STOP && this.state != null && !(this.state in this.states)) {
-        alert("Состояние " + this.state + " не обнаружено!")
-        return
-    }
-
     if (showLog && (this.state == STOP || this.state == null || this.iterations == MAX_ITERATIONS)) {
         this.Reset()
 
         if (this.state == null)
             this.state = this.initStateBox.value
+    }
+
+    if (this.state != STOP && !(this.state in this.states)) {
+        alert("Состояние " + this.state + " не обнаружено!")
+        return
     }
 
     this.iterations++
