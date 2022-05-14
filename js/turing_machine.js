@@ -309,7 +309,12 @@ TuringMachine.prototype.RenameState = function(prevState, newState) {
     delete this.states[prevState]
     this.states[newState] = states
     this.ValidateAllCells()
+
+    let initState = this.initStateBox.value
     this.UpdateInitStateBox()
+
+    if (prevState == initState)
+        this.initStateBox.value = newState
 }
 
 TuringMachine.prototype.StateToString = function(state, char, nextChar, action, nextState) {
@@ -330,7 +335,8 @@ TuringMachine.prototype.SetState = function(state, char, nextChar, action, nextS
 
 TuringMachine.prototype.ValidateStateName = function(input) {
     if (input.value in this.states) {
-        input.parentNode.classList.add('states-error')
+        alert(`Состояние "${input.value}" уже присутствует. Задайте другое имя`)
+        input.value = input.id.substr(12)
         input.focus()
         return
     }
