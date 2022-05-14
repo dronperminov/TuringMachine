@@ -224,9 +224,21 @@ TuringMachine.prototype.UpdateAlphabet = function() {
     this.alphabet = alphabet
 }
 
+TuringMachine.prototype.GetNextName = function() {
+    let count = 0
+    let state = `q${count}`
+
+    while (state in this.states) {
+        count++
+        state = `q${count}`
+    }
+
+    return state
+}
+
 TuringMachine.prototype.AddState = function(state = null) {
     if (state == null)
-        state = "q" + Object.keys(this.states).length
+        state = this.GetNextName()
 
     let alphabet = this.GetAlphabet()
     let row = this.MakeStatesRow("row-" + state)
