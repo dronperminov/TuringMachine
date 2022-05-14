@@ -51,6 +51,15 @@ Tape.prototype.Clear = function() {
         this.chars[key] = LAMBDA
 }
 
+Tape.prototype.GetWord = function(start) {
+    let word = []
+
+    for (let i = start; this.Get(i) != LAMBDA; i++)
+        word.push(this.Get(i))
+
+    return word.join('')
+}
+
 Tape.prototype.ToCells = function(position) {
     for (let i = 0; i < this.size; i++) {
         let cell = document.getElementById('tape-cell-' + i)

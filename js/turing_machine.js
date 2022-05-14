@@ -1,13 +1,13 @@
-function TuringMachine(tapeBlockId, alphabetId, inputWordId, statesBlockId, infoBlockId) {
+function TuringMachine(tapeBlockId, alphabetId, inputWordId, initStateBoxId, statesBlockId, infoBlockId) {
     this.tapeBlock = document.getElementById(tapeBlockId)
     this.alphabetBox = document.getElementById(alphabetId)
     this.inputWordBox = document.getElementById(inputWordId)
+    this.initStateBox = document.getElementById(initStateBoxId)
     this.statesBlock = document.getElementById(statesBlockId)
     this.infoBlock = document.getElementById(infoBlockId)
     
     let machine = this
     window.addEventListener('resize', function(e) { machine.Resize() }, true);
-    this.alphabetBox.onkeyup = function() { machine.UpdateAlphabet() }
 
     this.tape = new Tape()
     this.states = {}
@@ -18,6 +18,28 @@ function TuringMachine(tapeBlockId, alphabetId, inputWordId, statesBlockId, info
 
     this.position = Math.floor(this.tape.size / 2)
     this.tape.ToCells(this.position)
+}
+
+TuringMachine.prototype.UpdateInitStateBox = function() {
+    let initState = this.initStateBox.value
+
+    while (this.initStateBox.firstChild)
+        this.initStateBox.firstChild.remove()
+
+    let states = Object.keys(this.states)
+
+    if (states.length == 0)
+        states = ['q0']
+
+    for (let state of states) {
+        let option = document.createElement('option')
+        option.value = state
+        option.innerText = state
+        this.initStateBox.appendChild(option)
+
+        if (state == initState)
+            option.setAttribute('selected', '')
+    }
 }
 
 TuringMachine.prototype.MakeTapeCell = function() {
@@ -224,6 +246,9 @@ TuringMachine.prototype.AddState = function(state = null) {
         let cell = this.MakeStateCell(row)
         this.MakeStatesInput(cell, state, alphabet[i])
     }
+
+    this.ValidateAllCells()
+    this.UpdateInitStateBox()
 }
 
 TuringMachine.prototype.ValidateAllCells = function() {
@@ -242,6 +267,16 @@ TuringMachine.prototype.RemoveState = function(state) {
     delete this.states[state]
     this.statesBlock.removeChild(document.getElementById('row-' + state))
     this.ValidateAllCells()
+    this.UpdateInitStateBox()
+}
+
+TuringMachine.prototype.RemoveAllStates = function() {
+    for (let state of Object.keys(this.states)) {
+        this.statesBlock.removeChild(document.getElementById('row-' + state))
+    }
+
+    this.states = {}
+    this.UpdateInitStateBox()
 }
 
 TuringMachine.prototype.RenameState = function(prevState, newState) {
@@ -262,6 +297,7 @@ TuringMachine.prototype.RenameState = function(prevState, newState) {
     delete this.states[prevState]
     this.states[newState] = states
     this.ValidateAllCells()
+    this.UpdateInitStateBox()
 }
 
 TuringMachine.prototype.StateToString = function(state, char, nextChar, action, nextState) {
@@ -452,12 +488,17 @@ TuringMachine.prototype.UpdatePosition = function(index) {
 }
 
 TuringMachine.prototype.Reset = function() {
-    this.state = "q0"
+    this.state = null
     this.iterations = 0
+    this.infoBlock.innerHTML = ''
+    this.ClearStateSelection()
 }
 
 TuringMachine.prototype.Run = function() {
     this.Reset()
+
+    if (this.state == null)
+        this.state = this.initStateBox.value
 
     if (!this.ValidateAllCells()) {
         alert("Обнаружены неверно заданные состояния. Пожалуйста, исправьте их")
@@ -497,14 +538,16 @@ TuringMachine.prototype.SetCurrStateCell = function(state, char) {
 }
 
 TuringMachine.prototype.Step = function(showLog = true) {
-    if (this.state != STOP && !(this.state in this.states)) {
+    if (this.state != STOP && this.state != null && !(this.state in this.states)) {
         alert("Состояние " + this.state + " не обнаружено!")
         return
     }
 
-    if (showLog && (this.state == STOP || this.iterations == MAX_ITERATIONS)) {
+    if (showLog && (this.state == STOP || this.state == null || this.iterations == MAX_ITERATIONS)) {
         this.Reset()
-        this.infoBlock.innerHTML = ""
+
+        if (this.state == null)
+            this.state = this.initStateBox.value
     }
 
     this.iterations++
@@ -548,20 +591,22 @@ TuringMachine.prototype.Step = function(showLog = true) {
         action = "сдвиг вправо"
     }
 
-    this.infoBlock.innerHTML += "Шаг " + this.iterations + ":" + prev + "→" + next
+    let log = "Шаг " + this.iterations + ":" + prev + "→" + next
 
     if (this.state == STOP) {
         if (action != "")
             action += ", "
 
-        this.infoBlock.innerHTML += "(" + action + "достигнуто терминальное состояние)<br>"
+        log += "(" + action + "достигнуто терминальное состояние)<br>"
     }
     else {
         if (action != "")
             action = "(" + action + ")"
 
-        this.infoBlock.innerHTML += action + "<br>"
+        log += action + "<br>"
     }
+
+    this.infoBlock.innerHTML = log + this.infoBlock.innerHTML
 }
 
 TuringMachine.prototype.ClearTape = function() {
@@ -586,4 +631,128 @@ TuringMachine.prototype.WordToTape = function() {
         this.MoveTape(-1)
 
     this.tape.ToCells(this.position)
+}
+
+TuringMachine.prototype.Save = function() {
+    let machine = {}
+    machine['alphabet'] = this.alphabet.filter((char) => char != LAMBDA)
+    machine['states'] = {}
+    machine['word'] = this.tape.GetWord(this.position)
+
+    for (let state of Object.keys(this.states)) {
+        machine['states'][state] = {}
+
+        for (let char of Object.keys(this.states[state])) {
+            let value = this.states[state][char]
+            let nextChar = value[0]
+            let action = value[1]
+            let nextState = value[2]
+
+            machine['states'][state][char] = this.StateToString(state, char, nextChar, action, nextState)
+        }
+    }
+
+    let link = document.createElement("a")
+    link.href = URL.createObjectURL(new Blob([JSON.stringify(machine, null, 4)], { type: 'json' }))
+    link.download = 'machine.turing'
+    link.click()
+}
+
+TuringMachine.prototype.Load = function() {
+    let input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.turing,.txt'
+    input.onchange = () => this.LoadFromFile(input.files[0])
+    input.click()
+}
+
+TuringMachine.prototype.LoadFromFile = function(file) {
+    if (file.name.endsWith('.turing')) {
+        let fr = new FileReader()
+        fr.onload = (e) => this.LoadJson(JSON.parse(e.target.result))
+        fr.readAsText(file)
+        return
+    }
+
+    if (file.name.endsWith('.txt')) {
+        let fr = new FileReader()
+        fr.onload = (e) => this.LoadTxt(e.target.result)
+        fr.readAsText(file)
+        return
+    }
+
+    alert("Необходимо выбрать .turing или .txt файл с машиной Тьюринга...")
+}
+
+TuringMachine.prototype.LoadJson = function(machine) {
+    try {
+        if (!('alphabet' in machine))
+            throw "Некорректный входной файл: отсутствует алфавит"
+
+        if (!('states' in machine))
+            throw "Некорректный входной файл: отсутствуют состояния"
+
+        let alphabet = machine['alphabet']
+        let states = machine['states']
+
+        this.RemoveAllStates()
+        this.SetAlphabet(alphabet.join(''))
+
+        for (let state of Object.keys(states)) {
+            this.AddState(state)
+
+            for (let char of Object.keys(states[state])) {
+                let value = this.ParseState(states[state][char], state, char)
+                this.SetState(state, char, value[0], value[1], value[2])
+            }
+        }
+
+        if ('word' in machine) {
+            this.ClearTape()
+            this.SetInputWord(machine['word'])
+        }
+
+        this.Reset()
+    }
+    catch (error) {
+        alert(error)
+    }
+}
+
+TuringMachine.prototype.LoadTxt = function(txt) {
+    let lines = txt.split(/\n+/gi)
+
+    try {
+        this.RemoveAllStates()
+
+        let alphabet = lines.shift().replace(/^\s+/gi, '').split(/\s+/gi)
+
+        this.SetAlphabet(alphabet.filter((char) => char != LAMBDA).join(''))
+
+        for (let line of lines) {
+            let args = line.split(/\s+/gi)
+            let state = args.shift()
+
+            this.AddState(state)
+
+            for (let i = 0; i < args.length; i++) {
+                let char = alphabet[i]
+                let arg = args[i]
+
+                if (arg.endsWith(','))
+                    arg += state
+
+                if (arg.startsWith(','))
+                    arg = char + args[i]
+
+                let value = this.ParseState(arg, state, char)
+                this.SetState(state, char, value[0], value[1], value[2])
+            }
+        }
+
+        this.Reset()
+    }
+    catch (error) {
+        alert(error)
+    }
 }

@@ -2,25 +2,21 @@
     font: 20px 'Consolas';
 }
 
-.alphabet {
-    display: inline-block;
+.turing-machine select {
+    font: 17px 'Consolas';
+}
+
+.alphabet input[type="text"] {
+    width: 230px;
+}
+
+.input-word input[type="text"] {
     margin-top: 10px;
+    width: 252px;
 }
 
-.alphabet input {
-    max-width: 165px;
-}
-
-.input-word {
-}
-
-.input-word input {
+.init-state {
     margin-top: 10px;
-    max-width: 187px;
-}
-
-.controls {
-    display: inline-block;
 }
 
 .control-btn {
@@ -30,6 +26,7 @@
     font-size: 18px !important;
     cursor: pointer;
     margin-top: 10px;
+    min-width: 105px;
 }
 
 .control-btn:hover {
@@ -40,6 +37,9 @@
 .scroll-block {
     overflow: auto;
 }
+
+.table { border-collapse: collapse; user-select: none; display: block; overflow-x: auto; white-space: nowrap; width: 100% }
+.table td, .table th { border: 1px solid #000; text-align: center; padding: 2px 5px }
 
 @media (max-width:767px) {
     .controls {
