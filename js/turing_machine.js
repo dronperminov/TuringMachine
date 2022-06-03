@@ -107,6 +107,15 @@ TuringMachine.prototype.MakeStatesInput = function(cell, state, char) {
     cell.appendChild(input)
 }
 
+TuringMachine.prototype.MakeCommentInput = function(cell, state) {
+    let input = document.createElement("input")
+    input.type = "text"
+    input.className = "states-cell-input"
+    input.id = 'comment-' + state
+    input.value = ""
+    cell.appendChild(input)
+}
+
 TuringMachine.prototype.MakeStatesNameInput = function(cell, state) {
     let machine = this
     let input = document.createElement("input")
@@ -162,7 +171,7 @@ TuringMachine.prototype.InitStates = function() {
     let machine = this
     let header = this.MakeStatesRow("row-header")
     let alphabet = this.GetAlphabet()
-    let headerNames = ["Состояние"].concat(alphabet)
+    let headerNames = ["Состояние"].concat(alphabet).concat(['комментарий'])
 
     for (let i = 0; i < headerNames.length; i++) {
         let cell = this.MakeStateCell(header, headerNames[i])
@@ -259,6 +268,9 @@ TuringMachine.prototype.AddState = function(state = null) {
         this.MakeStatesInput(cell, state, alphabet[i])
     }
 
+    let comment = this.MakeStateCell(row)
+    this.MakeCommentInput(comment, state)
+
     this.ValidateAllCells()
     this.UpdateInitStateBox()
 }
@@ -334,6 +346,11 @@ TuringMachine.prototype.SetState = function(state, char, nextChar, action, nextS
     let cell = document.getElementById("states-cell-" + state + "-" + char)
     cell.value = this.StateToString(state, char, nextChar, action, nextState)
     this.ValidateStateCell(cell)
+}
+
+TuringMachine.prototype.SetComment = function(state, comment) {
+    let cell = document.getElementById(`comment-${state}`)
+    cell.value = comment
 }
 
 TuringMachine.prototype.ValidateStateName = function(input) {
@@ -662,6 +679,7 @@ TuringMachine.prototype.Save = function() {
 
     for (let state of Object.keys(this.states)) {
         machine['states'][state] = {}
+        machine['states'][state].comment = document.getElementById(`comment-${state}`).value
 
         for (let char of Object.keys(this.states[state])) {
             let value = this.states[state][char]
@@ -723,6 +741,11 @@ TuringMachine.prototype.LoadJson = function(machine) {
             this.AddState(state)
 
             for (let char of Object.keys(states[state])) {
+                if (char == 'comment') {
+                    this.SetComment(state, states[state][char])
+                    continue
+                }
+
                 let value = this.ParseState(states[state][char], state, char)
                 this.SetState(state, char, value[0], value[1], value[2])
             }
